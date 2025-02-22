@@ -1,6 +1,5 @@
 package com.coleji.stockwatcher.controller;
 
-
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
@@ -11,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("/")
 class TestController {
 	@Autowired
-	DSLContext dslContext;
+	private DSLContext dslContext;
 
 	@GetMapping("/")
 	public String ping() {

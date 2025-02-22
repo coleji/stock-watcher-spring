@@ -1,4 +1,5 @@
 application.properties
+gradle.properties
 
 HELP.md
 .gradle

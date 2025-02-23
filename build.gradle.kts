@@ -42,6 +42,12 @@ dependencies {
 	implementation("org.jooq:jooq-meta:3.20.1")
 	implementation("org.jooq:jooq-codegen:3.20.1")
 
+	// https://mvnrepository.com/artifact/org.testcontainers/testcontainers
+	testImplementation("org.testcontainers:testcontainers:1.20.5")
+	// https://mvnrepository.com/artifact/org.testcontainers/mysql
+	testImplementation("org.testcontainers:mysql:1.20.5")
+
+
 }
 
 kotlin {

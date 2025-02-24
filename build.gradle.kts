@@ -58,6 +58,9 @@ kotlin {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+
+	minHeapSize = "1024m"
+	maxHeapSize = "3072m"
 }
 
 tasks.processResources {

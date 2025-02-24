@@ -1,5 +1,7 @@
 application.properties
 gradle.properties
+src/test/resources/ignore
+*.hprof
 
 HELP.md
 .gradle

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -15,8 +16,10 @@ import org.testcontainers.ext.ScriptUtils;
 import org.testcontainers.jdbc.JdbcDatabaseDelegate;
 import org.testcontainers.utility.DockerImageName;
 
+import java.io.*;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Properties;
 
 /**
  * Base class that brings up a mssql testcontainer.
@@ -24,7 +27,6 @@ import java.sql.Statement;
 @ActiveProfiles(profiles = {"test", "test-db"})
 @ContextConfiguration(initializers = {MysqlTest.DbConnectionInitializer.class})
 public abstract class MysqlTest {
-
 	/**
 	 * If true, do not stop the container between test classes. Instead, clear out
 	 * the database. If false, the mssql container is stopped and restarted between test classes.
@@ -40,15 +42,21 @@ public abstract class MysqlTest {
 
 	private static boolean dbStarted = false;
 
-	private static MySQLContainer mysqlServerContainer = new MySQLContainer(DockerImageName.parse("mysql").withTag("8.0-debian"));
+	private static MySQLContainer mysqlServerContainer = (MySQLContainer) new MySQLContainer(DockerImageName.parse("mysql").withTag("8.0-debian")).withCommand("--max-allowed-packet=67108864");
 
 	@BeforeAll
 	public static void startDb() throws SQLException {
 		if (!dbStarted) {
-			mysqlServerContainer.start();
+			try {
+				getDbInitScript();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+			mysqlServerContainer.withInitScript("ignore/test-data.sql").start();
 			logger.info("MySql test container details: jdbcUrl={} username={} password={}", mysqlServerContainer.getJdbcUrl(), mysqlServerContainer.getUsername(), mysqlServerContainer.getPassword());
 			execute("select 1");
-//			execute("CREATE DATABASE " + DB_NAME + ";");
 			dbStarted = true;
 		} else if (SHARE_DB) {
 			// Clear all data between test classes
@@ -112,4 +120,16 @@ public abstract class MysqlTest {
 		}
 	}
 
+	private static void getDbInitScript() throws IOException, InterruptedException {
+		logger.info("running shell");
+		Properties prop = new Properties();
+		try (FileReader fr = new FileReader("./src/test/resources/application.properties")) {
+			prop.load(fr);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		String testDataEncryptPassphrase =  prop.getProperty("com.coleji.stockwatcher.test-data-encrypt-phrase");
+		Process p = Runtime.getRuntime().exec(new String[]{"./decrypt-test-data.sh", testDataEncryptPassphrase});
+		p.waitFor();
+	}
 }

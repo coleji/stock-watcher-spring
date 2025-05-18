@@ -2,6 +2,7 @@ package com.coleji.stockwatcher.controller;
 
 import com.coleji.stockwatcher.config.prop.AppProps;
 import com.coleji.stockwatcher.model.polygon.DtoOhlcResponse;
+import com.coleji.stockwatcher.model.polygon.DtoSplitResponse;
 import com.coleji.stockwatcher.util.JacksonUtil;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,18 +37,21 @@ class TestController {
 
 	@GetMapping("/")
 	public String ping() {
-		List<File> allFiles = Stream.of(new File("out/sample/ohlc").listFiles())
+		List<File> allFiles = Stream.of(new File("out/sample/splits").listFiles())
 			.filter(file -> !file.isDirectory())
 			.sorted(Comparator.comparing(File::getName))
 			.toList();
+
+		int total = allFiles.size();
+		int ct = 0;
 		for (File f : allFiles) {
 			try (FileInputStream fis = new FileInputStream(f)) {
 				byte[] contents = fis.readAllBytes();
 				ObjectMapper mapper = JacksonUtil.getObjectMapperBuilderWithModules()
 						.enable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES)
 						.build();
-				DtoOhlcResponse dto = mapper.readValue(contents, DtoOhlcResponse.class);
-				logger.info(f.getName() + " - " + dto.getResultsCount());
+				DtoSplitResponse dto = mapper.readValue(contents, DtoSplitResponse.class);
+				logger.info((++ct) + "/" + total + " - " + f.getName() + " - " + dto.getResults().size());
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}

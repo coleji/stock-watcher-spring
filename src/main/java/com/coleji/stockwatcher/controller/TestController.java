@@ -1,6 +1,7 @@
 package com.coleji.stockwatcher.controller;
 
 import com.coleji.stockwatcher.config.prop.AppProps;
+import com.coleji.stockwatcher.model.polygon.DtoDividendResponse;
 import com.coleji.stockwatcher.model.polygon.DtoOhlcResponse;
 import com.coleji.stockwatcher.model.polygon.DtoSplitResponse;
 import com.coleji.stockwatcher.util.JacksonUtil;
@@ -48,10 +49,11 @@ class TestController {
 			try (FileInputStream fis = new FileInputStream(f)) {
 				byte[] contents = fis.readAllBytes();
 				ObjectMapper mapper = JacksonUtil.getObjectMapperBuilderWithModules()
-						.enable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES)
 						.build();
 				DtoSplitResponse dto = mapper.readValue(contents, DtoSplitResponse.class);
 				logger.info((++ct) + "/" + total + " - " + f.getName() + " - " + dto.getResults().size());
+				if (ct==1) logger.info(dto.toString());
+				break;
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}

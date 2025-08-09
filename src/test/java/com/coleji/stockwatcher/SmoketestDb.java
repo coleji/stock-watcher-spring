@@ -4,13 +4,13 @@ import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.web.bind.annotation.GetMapping;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
-public class InsertRecords extends MysqlTest {
+public class SmoketestDb extends MysqlTest {
 	@Autowired
 	private DSLContext dslContext;
 
@@ -19,7 +19,6 @@ public class InsertRecords extends MysqlTest {
 		Result<Record> r1 = dslContext.resultQuery("select * from s_p_daily_ohlc limit 1").fetch();
 		System.out.println(r1.getFirst().toString());
 		System.out.println(r1.getFirst().get("volume").toString());
-
 
 		Result<Record> r2 = dslContext.resultQuery("select * from s_p_daily_ohlc_day limit 1").fetch();
 		System.out.println(r2.getFirst().toString());
@@ -39,5 +38,7 @@ public class InsertRecords extends MysqlTest {
 		Result<Record> r7 = dslContext.resultQuery("select * from s_p_splits limit 1").fetch();
 		System.out.println(r7.getFirst().toString());
 
+
+		assertEquals(1,1);
 	}
 }

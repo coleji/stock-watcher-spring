@@ -1,11 +1,9 @@
 package com.coleji.stockwatcher;
 
-import org.jooq.generated.tables.SPDailyOhlc;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -19,6 +17,7 @@ import org.testcontainers.utility.DockerImageName;
 import java.io.*;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -39,13 +38,38 @@ public abstract class MysqlTest {
 
 	public static String DB_NAME = "finance_test";
 
+	public static Properties prop;
+
+	static {
+		prop = new Properties();
+		try (FileReader fr = new FileReader("./src/test/resources/application.properties")) {
+			prop.load(fr);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 	private static boolean dbStarted = false;
+
+	private static boolean usingStaticDb() {
+		return prop != null && Objects.equals(prop.getProperty("com.coleji.stockwatcher.test-db-use-static"), "true");
+	}
 
 	private static MySQLContainer mysqlServerContainer = (MySQLContainer) new MySQLContainer(DockerImageName.parse("mysql").withTag("8.0-debian")).withCommand("--max-allowed-packet=67108864");
 
 	@BeforeAll
-	public static void startDb() throws SQLException {
+	public static void beforeAll() throws SQLException {
+		if (usingStaticDb()) {
+			return;
+		} else if (!dbStarted) {
+			startDb();
+		} else if (SHARE_DB) {
+			// Clear all data between test classes
+			clearDb();
+		}
+	}
+
+	private static void startDb() throws SQLException {
 		if (!dbStarted) {
 			try {
 				getDbInitScript();
@@ -58,9 +82,6 @@ public abstract class MysqlTest {
 			logger.info("MySql test container details: jdbcUrl={} username={} password={}", mysqlServerContainer.getJdbcUrl(), mysqlServerContainer.getUsername(), mysqlServerContainer.getPassword());
 			execute("select 1");
 			dbStarted = true;
-		} else if (SHARE_DB) {
-			// Clear all data between test classes
-			clearDb();
 		}
 	}
 
@@ -110,6 +131,8 @@ public abstract class MysqlTest {
 	protected static class DbConnectionInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 		@Override
 		public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
+			if (usingStaticDb()) return;
+
 			TestPropertySourceUtils.addInlinedPropertiesToEnvironment(
 					configurableApplicationContext,
 					"spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver",
@@ -122,14 +145,9 @@ public abstract class MysqlTest {
 
 	private static void getDbInitScript() throws IOException, InterruptedException {
 		logger.info("running shell");
-		Properties prop = new Properties();
-		try (FileReader fr = new FileReader("./src/test/resources/application.properties")) {
-			prop.load(fr);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-		String testDataEncryptPassphrase =  prop.getProperty("com.coleji.stockwatcher.test-data-encrypt-phrase");
-		Process p = Runtime.getRuntime().exec(new String[]{"./decrypt-test-data.sh", testDataEncryptPassphrase});
+
+		String testDataEncryptPassphrase = prop.getProperty("com.coleji.stockwatcher.test-data-encrypt-phrase");
+		Process p = Runtime.getRuntime().exec(new String[]{"./script/decrypt-sql-init.sh", testDataEncryptPassphrase});
 		p.waitFor();
 	}
 }

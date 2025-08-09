@@ -1,0 +1,1 @@
+mkdir -p ./build/resources/test/ignore; cat ./src/test/resources/test-api-result-encrypt | gpg -d --batch --passphrase=$1  > ./build/resources/test/ignore/test-api-results.tar.gz && tar -zxvC ./build/resources/test/ignore/ -f ./build/resources/test/ignore/test-api-results.tar.gz

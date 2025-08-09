@@ -2,7 +2,7 @@ plugins {
 	kotlin("jvm") version "1.9.25"
 	kotlin("plugin.spring") version "1.9.25"
 	war
-	id("org.springframework.boot") version "3.4.3"
+	id("org.springframework.boot") version "3.5.4"
 	id("io.spring.dependency-management") version "1.1.7"
 }
 
@@ -29,8 +29,9 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.boot:spring-boot-testcontainers")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-	testImplementation("org.springframework.security:spring-security-test")
+	testImplementation("org.testcontainers:junit-jupiter")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
 	// https://mvnrepository.com/artifact/com.mysql/mysql-connector-j
@@ -43,10 +44,10 @@ dependencies {
 	implementation("org.jooq:jooq-codegen:3.20.1")
 
 	// https://mvnrepository.com/artifact/org.testcontainers/testcontainers
-	testImplementation("org.testcontainers:testcontainers:1.20.5")
+	//testImplementation("org.testcontainers:testcontainers:1.20.5")
 	// https://mvnrepository.com/artifact/org.testcontainers/mysql
 	testImplementation("org.testcontainers:mysql:1.20.5")
-
+	testImplementation(kotlin("test"))
 
 }
 

@@ -61,7 +61,7 @@ tasks.withType<Test> {
 	useJUnitPlatform()
 
 	minHeapSize = "1024m"
-	maxHeapSize = "3072m"
+	maxHeapSize = "12288m"
 }
 
 tasks.processResources {

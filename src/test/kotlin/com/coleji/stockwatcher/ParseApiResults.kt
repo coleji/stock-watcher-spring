@@ -1,5 +1,8 @@
 package com.coleji.stockwatcher
 
+import com.coleji.stockwatcher.model.polygon.DtoDividendResponse
+import com.coleji.stockwatcher.model.polygon.DtoFinancialsResponse
+import com.coleji.stockwatcher.model.polygon.DtoOhlcResponse
 import com.coleji.stockwatcher.model.polygon.DtoSplitResponse
 import com.coleji.stockwatcher.util.JacksonUtil
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -30,15 +33,29 @@ class ParseApiResults {
 	fun parseSplits() {
 		val allResults = parseAll("./build/resources/test/ignore/out/splits", DtoSplitResponse::class.java)
 		val totalCt = allResults.map {it.results.size}.reduce { a, b -> a+b }
-		assertEquals(totalCt, 10292)
+		assertEquals(10292, totalCt )
 	}
 
-//	@Test
-//	fun parseOhlc() {
-//		val allResults = parseAll("./build/resources/test/ignore/out/ohlc", DtoSplitResponse::class.java)
-//		val totalCt = allResults.map {it.results.size}.reduce { a, b -> a+b }
-//		assertEquals(totalCt, 10292)
-//	}
+	@Test
+	fun parseOhlc() {
+		val allResults = parseAll("./build/resources/test/ignore/out/ohlc", DtoOhlcResponse::class.java)
+		val totalCt = allResults.map { r -> if (r.results != null) r.results!!.size else 0}.reduce { a, b -> a+b }
+		assertEquals(22388769, totalCt)
+	}
+
+	@Test
+	fun parseDividends() {
+		val allResults = parseAll("./build/resources/test/ignore/out/dividends", DtoDividendResponse::class.java)
+		val totalCt = allResults.map { r -> if (r.results != null) r.results!!.size else 0}.reduce { a, b -> a+b }
+		assertEquals(383762, totalCt)
+	}
+
+	@Test
+	fun parseFinancials() {
+		val allResults = parseAll("./build/resources/test/ignore/out/financials", DtoFinancialsResponse::class.java)
+		val totalCt = allResults.map { r -> if (r.results != null) r.results!!.size else 0}.reduce { a, b -> a+b }
+		assertEquals(425151, totalCt)
+	}
 
 	private fun <T> parseAll(path: String, dto: Class<T>): List<T> {
 		val allFiles = Stream.of<File>(*File(path).listFiles())

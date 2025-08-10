@@ -10,8 +10,8 @@ data class DtoSplitResponse(
 ) {
 	data class DtoSplitResponseResult(
 		val execution_date: LocalDate,
-		val split_from: Int,
-		val split_to: Int,
+		val split_from: Float,
+		val split_to: Float,
 		val ticker: String
 	)
 }

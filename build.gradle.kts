@@ -1,9 +1,12 @@
+import org.jooq.meta.jaxb.*
+
 plugins {
 	kotlin("jvm") version "1.9.25"
 	kotlin("plugin.spring") version "1.9.25"
 	war
 	id("org.springframework.boot") version "3.5.4"
 	id("io.spring.dependency-management") version "1.1.7"
+	id("org.jooq.jooq-codegen-gradle") version "3.20.1"
 }
 
 group = "com.coleji"
@@ -22,6 +25,9 @@ repositories {
 
 dependencies {
 //	implementation("org.springframework.boot:spring-boot-starter-security")
+// https://mvnrepository.com/artifact/commons-codec/commons-codec
+	implementation("commons-codec:commons-codec:1.19.0")
+	implementation("com.opencsv:opencsv:5.9")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-jdbc")
 	implementation("org.springframework.boot:spring-boot-starter-jooq")
@@ -39,9 +45,12 @@ dependencies {
 
 	// jooq
 	// https://mvnrepository.com/artifact/org.jooq/jooq
-	implementation("org.jooq:jooq:3.20.1")
-	implementation("org.jooq:jooq-meta:3.20.1")
-	implementation("org.jooq:jooq-codegen:3.20.1")
+	implementation("org.jooq:jooq:3.20.5")
+	implementation("org.jooq:jooq-meta:3.20.5")
+	implementation("org.jooq:jooq-codegen:3.20.5")
+	implementation("org.jooq:jooq-jackson-extensions:3.20.5")
+	jooqCodegen("org.jooq:jooq-meta-extensions:3.20.5")
+
 
 	// https://mvnrepository.com/artifact/org.testcontainers/testcontainers
 	//testImplementation("org.testcontainers:testcontainers:1.20.5")
@@ -86,26 +95,22 @@ buildscript {
 	}
 }
 
-tasks.register("jooqCodegen") {
-	doLast {
-//		val schemaPath = layout.projectDirectory.file("/src/main/resources/schema.sql").asFile.path
-
-		org.jooq.meta.jaxb.Configuration()
-			.withJdbc(
-				org.jooq.meta.jaxb.Jdbc()
-					.withDriver(project.property("spring.datasource.driver-class-name") as String)
-					.withUrl(project.property("spring.datasource.url") as String)
-					.withUser(project.property("spring.datasource.username") as String)
-					.withPassword(project.property("spring.datasource.password") as String)
-			)
-			.withGenerator(
-				org.jooq.meta.jaxb.Generator()
-					.withDatabase(org.jooq.meta.jaxb.Database().withInputSchema("finance"))
-					.withTarget(
-						org.jooq.meta.jaxb.Target()
-							.withPackageName("org.jooq.generated")
-							.withDirectory("${layout.buildDirectory.get()}/generated/main/java")
-					)
-			).also(org.jooq.codegen.GenerationTool::generate)
+jooq {
+	configuration {
+		generator {
+			database {
+				name = "org.jooq.meta.extensions.ddl.DDLDatabase"
+				properties {
+					property {
+						key = "scripts"
+						value = "src/main/resources/ddl.sql"
+					}
+				}
+			}
+			target {
+				packageName = "org.jooq.generated"
+				directory = "${layout.buildDirectory.get()}/generated/main/java"
+			}
+		}
 	}
 }
